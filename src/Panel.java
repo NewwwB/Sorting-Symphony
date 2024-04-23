@@ -9,7 +9,7 @@ public class Panel extends JPanel {
     final int BAR_GAP = 40;
     int[] list;
     int listSize = 28;
-    final int DELAY = 1;
+    final int DELAY = 50;
     boolean active = false;
     Random random;
     Timer timer;
@@ -44,29 +44,25 @@ public class Panel extends JPanel {
         repaint();
     }
     void sortList(){
-        timer = new Timer(200, e -> {
-            for(int val : list){
-                System.out.print(val+" ");
-            }
-            System.out.println();
+        Thread thread = new Thread(()-> {
             for(int i=0 ; i< list.length ; i++){
-                for(int j=0 ; j<list.length-1 ; j++){
-                    if(list[j]>list[j+1]){
+                for(int j=0 ; j< list.length -1 ; j++){
+                    if(list[j] > list[j+1]){
                         int temp = list[j];
                         list[j] = list[j+1];
                         list[j+1] = temp;
-                        active = true;
-                        repaint();
-                        return;
+                    }
+                    active = true;
+                    repaint();
+                    try {
+                        Thread.sleep(DELAY);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
-            for(int val : list){
-                System.out.print(val+" ");
-            }
-            timer.stop();
         });
-        timer.start();
+        thread.start();
     }
     void draw(Graphics g){
         if(active){
