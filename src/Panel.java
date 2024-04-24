@@ -12,8 +12,8 @@ public class Panel extends JPanel {
     final int DELAY = 50;
     boolean active = false;
     Random random;
-    Timer timer;
-
+    Thread thread;
+    static boolean isThreadActive=false;
     Panel(){
         random = new Random();
 //        timer = new Timer(DELAY, e -> repaint());
@@ -36,6 +36,10 @@ public class Panel extends JPanel {
         return button;
     }
     void generateList(){
+        if(thread!=null){
+            thread.interrupt();
+            isThreadActive = false;
+        }
         list = new int[listSize];
         for(int i=0 ; i< list.length ; i++){
             list[i] = random.nextInt(400);
@@ -43,26 +47,40 @@ public class Panel extends JPanel {
         active = true;
         repaint();
     }
+    @SuppressWarnings("BusyWait")
     void sortList(){
-        Thread thread = new Thread(()-> {
-            for(int i=0 ; i< list.length ; i++){
-                for(int j=0 ; j< list.length -1 ; j++){
-                    if(list[j] > list[j+1]){
-                        int temp = list[j];
-                        list[j] = list[j+1];
-                        list[j+1] = temp;
+        if(!isThreadActive){
+            thread = new Thread(()-> {
+                isThreadActive= true;
+                int iteration=0;
+                boolean stillSorting;
+                for(int i=0 ; i< list.length ; i++){
+                    stillSorting = false;
+                    for(int j=0 ; j< list.length -1 ; j++){
+                        if(list[j] > list[j+1]){
+                            int temp = list[j];
+                            list[j] = list[j+1];
+                            list[j+1] = temp;
+                            stillSorting = true;
+                        }
+                        active = true;
+                        repaint();
+                        try {
+                            Thread.sleep(DELAY);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        System.out.println("iteration: "+ iteration++);
                     }
-                    active = true;
-                    repaint();
-                    try {
-                        Thread.sleep(DELAY);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                    if(!stillSorting){
+                        break;
                     }
                 }
-            }
-        });
-        thread.start();
+                isThreadActive=false;
+            });
+            thread.start();
+        }
+
     }
     void draw(Graphics g){
         if(active){
@@ -73,9 +91,9 @@ public class Panel extends JPanel {
     void drawList(Graphics g){
         int x= 50;
         int y= 50;
-        for(int i=0 ; i<list.length ; i++){
+        for(int j: list){
             g.setColor(Color.blue);
-            g.drawRect(x, y, BAR_WIDTH, list[i]);
+            g.drawRect(x, y, BAR_WIDTH, j);
             x+=BAR_GAP;
         }
     }
@@ -83,8 +101,6 @@ public class Panel extends JPanel {
     public void paintComponent(Graphics g){
         super.paintComponent(g);
         draw(g);
-//        generateList();
-//        drawList(g);
     }
 
 }
