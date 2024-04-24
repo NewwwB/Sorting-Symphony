@@ -7,9 +7,11 @@ public class Panel extends JPanel {
     final int SCREEN_HEIGHT = 600;
     final int BAR_WIDTH = 20;
     final int BAR_GAP = 40;
-    int[] list;
+    Bar[] list;
     int listSize = 28;
-    final int DELAY = 50;
+    static int delay = 100;
+    final int DELAY_SLOW = 200;
+    final int DELAY_FAST = 50;
     boolean active = false;
     Random random;
     Thread thread;
@@ -40,9 +42,9 @@ public class Panel extends JPanel {
             thread.interrupt();
             isThreadActive = false;
         }
-        list = new int[listSize];
+        list = new Bar[listSize];
         for(int i=0 ; i< list.length ; i++){
-            list[i] = random.nextInt(400);
+            list[i] = new Bar(random.nextInt(400));
         }
         active = true;
         repaint();
@@ -57,19 +59,31 @@ public class Panel extends JPanel {
                 for(int i=0 ; i< list.length ; i++){
                     stillSorting = false;
                     for(int j=0 ; j< list.length -1 ; j++){
-                        if(list[j] > list[j+1]){
-                            int temp = list[j];
-                            list[j] = list[j+1];
-                            list[j+1] = temp;
-                            stillSorting = true;
+                        if(list[j].height > list[j+1].height){
+                            list[j].color = Color.red;
+                            list[j+1].color = Color.red;
+                            delay = DELAY_SLOW;
                         }
-                        active = true;
+                        else {
+                            list[j].color = Color.green;
+                            list[j+1].color = Color.green;
+                            delay = DELAY_FAST;
+                        }
                         repaint();
                         try {
-                            Thread.sleep(DELAY);
+                            Thread.sleep(delay);
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
+                        if(list[j].height > list[j+1].height){
+                            int temp = list[j].height;
+                            list[j].height = list[j+1].height;
+                            list[j+1].height = temp;
+                            stillSorting = true;
+                        }
+                        list[j].color = Color.blue;
+                        list[j+1].color = Color.blue;
+                        active = true;
                         System.out.println("iteration: "+ iteration++);
                     }
                     if(!stillSorting){
@@ -91,9 +105,9 @@ public class Panel extends JPanel {
     void drawList(Graphics g){
         int x= 50;
         int y= 50;
-        for(int j: list){
-            g.setColor(Color.blue);
-            g.drawRect(x, y, BAR_WIDTH, j);
+        for(Bar j: list){
+            g.setColor(j.color);
+            g.drawRect(x, y, BAR_WIDTH, j.height);
             x+=BAR_GAP;
         }
     }
