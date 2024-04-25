@@ -25,7 +25,7 @@ public class Panel extends JPanel {
         add(sortButton());
 
     }
-    JButton generateListButton(){
+    JButton generateListButton() {
         JButton button = new JButton();
         button.setText("generate");
         button.addActionListener(e -> generateList());
