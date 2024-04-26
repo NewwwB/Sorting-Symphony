@@ -23,17 +23,63 @@ public class Panel extends JPanel {
         setBackground(Color.BLACK);
         add(generateListButton());
         add(sortButton());
-
+        add(insertionSortButton());
     }
-    JButton generateListButton() {
+
+    private JButton insertionSortButton() {
+        JButton button = new JButton("Insertion Sort");
+        button.addActionListener(e-> insertionSort());
+        return button;
+    }
+    @SuppressWarnings("BusyWait")
+    private void insertionSort() {
+        if(!isThreadActive){
+            thread = new Thread(()-> {
+                isThreadActive= true;
+                for(int i=0 ; i<list.length-1 ; i++){
+                    for(int j=i+1 ; j<list.length ; j++){
+                        if(list[j].height<list[i].height){
+                            list[j].color = Color.red;
+                            list[i].color = Color.red;
+                            delay = DELAY_SLOW;
+                        }
+                        else{
+                            list[j].color = Color.green;
+                            list[i].color = Color.green;
+                            delay = DELAY_FAST;
+                        }
+                        active = true;
+                        repaint();
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if(list[j].height<list[i].height){
+                            //swap
+                            int temp = list[j].height;
+                            list[j].height = list[i].height;
+                            list[i].height = temp;
+                        }
+                        list[j].color = Color.blue;
+                        list[i].color = Color.blue;
+                    }
+                }
+                isThreadActive=false;
+            });
+            thread.start();
+        }
+    }
+
+    JButton generateListButton(){
         JButton button = new JButton();
-        button.setText("generate");
+        button.setText("Generate Array");
         button.addActionListener(e -> generateList());
         return button;
     }
     JButton sortButton(){
         JButton button = new JButton();
-        button.setText("sort");
+        button.setText("Bubble Sort");
         button.addActionListener(e -> sortList());
         return button;
     }
@@ -69,6 +115,7 @@ public class Panel extends JPanel {
                             list[j+1].color = Color.green;
                             delay = DELAY_FAST;
                         }
+                        active = true;
                         repaint();
                         try {
                             Thread.sleep(delay);
@@ -83,7 +130,6 @@ public class Panel extends JPanel {
                         }
                         list[j].color = Color.blue;
                         list[j+1].color = Color.blue;
-                        active = true;
                         System.out.println("iteration: "+ iteration++);
                     }
                     if(!stillSorting){
